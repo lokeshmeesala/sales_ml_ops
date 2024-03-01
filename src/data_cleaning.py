@@ -29,18 +29,22 @@ class DataPreProcessingStrategy(DataStrategy):
                 "order_delivered_carrier_date",
                 "order_delivered_customer_date",
                 "order_estimated_delivery_date",
-                "order_purchace_timestamp",
+                "order_purchase_timestamp",
             ], axis=1)
 
-            data["product_weight_g"].fillna(data["product_weight_g"].median(), inplace=True)
-            data["product_length_g"].fillna(data["product_length_g"].median(), inplace=True)
-            data["product_height_g"].fillna(data["product_height_g"].median(), inplace=True)
-            data["product_width_g"].fillna(data["product_width_g"].median(), inplace=True)
-            data["review_comment_message"].fillna("No review", inplace=True)
+            # data["product_weight_g"].fillna(data["product_weight_g"].median(), inplace=True)
+            # data["product_length_cm"].fillna(data["product_length_cm"].median(), inplace=True)
+            # data["product_height_cm"].fillna(data["product_height_cm"].median(), inplace=True)
+            # data["product_width_cm"].fillna(data["product_width_cm"].median(), inplace=True)
+            # data["review_comment_message"].fillna("No review", inplace=True)
 
             data = data.select_dtypes(include=[np.number])
-            cols_to_drop = ["customer_zip_code_prefix", "order_item_id"]
-            data = data.drop(cols_to_drop, axis=1)
+            data.dropna(inplace=True)
+            data.reset_index(drop=True, inplace=True)
+
+            # cols_to_drop = ["customer_zip_code_prefix", "order_item_id"]
+            # data = data.drop(cols_to_drop, axis=1)
+            logging.info(data.shape)
             return data
         except Exception as e:
             logging.error(f"Error in data preprocessing {e}")
@@ -54,8 +58,16 @@ class DataDivideStrategy(DataStrategy):
     def handle_data(self, data: pd.DataFrame) -> Union[pd.DataFrame, pd.Series]:
         try:
             X = data.drop(['review_score'], axis=1)
-            y = data['revie_score']
+            y = data['review_score']
             X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=314)
+            # logging.info(X_train.isna().sum())
+            # logging.info(X_test.isna().sum())
+            # logging.info(y_train.isna().sum())
+            # logging.info(y_test.isna().sum())
+            logging.info(X_train.shape)
+            logging.info(X_test.shape)
+            logging.info(y_train.shape)
+            logging.info(y_test.shape)
             return X_train, X_test, y_train, y_test
         except Exception as e:
             logging.error(f"Error in dividing the data {e}")

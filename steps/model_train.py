@@ -6,13 +6,18 @@ from src.model_dev import LinReg
 from sklearn.base import RegressorMixin
 from .config import ModelNameConfig
 
-@step
+import mlflow
+from zenml.client import Client
+
+experiment_tracker_client = Client().active_stack.experiment_tracker
+
+@step(experiment_tracker=experiment_tracker_client.name)
 def train_model(
     X_train: pd.DataFrame,
     X_test: pd.DataFrame,
     y_train: pd.Series,
     y_test: pd.Series,
-    config: ModelNameConfig
+    config: ModelNameConfig,
 ) -> RegressorMixin:
     """
     abc
@@ -20,8 +25,9 @@ def train_model(
     try:
         model = None
         if config.model_name == "LinearRegression":
+            mlflow.sklearn.autolog()
             model = LinReg()
-            trained_model = model.train(X_train, X_test)
+            trained_model = model.train(X_train, y_train)
             return trained_model
         else:
             raise ValueError(f"Model {config.model_name} is not supported")
