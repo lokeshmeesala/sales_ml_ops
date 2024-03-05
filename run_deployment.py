@@ -6,7 +6,7 @@ from zenml.integrations.mlflow.model_deployers.mlflow_model_deployer import (
     MLFlowModelDeployer,
 )
 from zenml.integrations.mlflow.services import MLFlowDeploymentService
-from pipelines.deployment_pipeline import continuous_delployment_pipeline
+from pipelines.deployment_pipeline import continuous_deployment_pipeline, inference_pipeline
 
 DEPLOY = "deploy"
 PREDICT = "predict"
@@ -36,14 +36,17 @@ def run_deployment(config: str, min_accuracy: float):
     predict = config == PREDICT or config == DEPLOY_AND_PREDICT
     print("mlflow_model_deployer_component",mlflow_model_deployer_component)
     if deploy:
-        continuous_delployment_pipeline(
-            data_path=".\data\orders_products_reviews_dataset.csv",
+        continuous_deployment_pipeline(
+            data_path="./data/orders_products_reviews_dataset.csv",
             min_accuracy=min_accuracy,
             workers=1,
             timeout=60)
     
-    # if predict:
-    #     # inference_pipeline()
+    if predict:
+        inference_pipeline(
+            pipeline_name="continuous_deployment_pipeline",
+            pipeline_step_name="mlflow_model_deployer_step"
+        )
         
     print("You can run:\n"
           f"[italic green] mlflow ui --backend-store-uri {get_tracking_uri()}"
